@@ -2,7 +2,7 @@
 
 ## Usage
 
-#### config.py as referenced below
+### config.py as referenced below
 
 ```python
 MONGO_HOST = 'localhost'
