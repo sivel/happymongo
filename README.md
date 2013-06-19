@@ -1,4 +1,4 @@
-# happymongo
+# HapPyMongo
 
 ## Usage
 
