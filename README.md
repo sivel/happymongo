@@ -2,6 +2,15 @@
 
 ## Usage
 
+#### config.py as referenced below
+
+```python
+MONGO_HOST = 'localhost'
+MONGO_PORT = '27017'
+MONGO_USERNAME = 'user'
+MONGO_PASSWORD = 'password'
+```
+
 ### Flask
 
 ```python
