@@ -26,7 +26,7 @@ import config
 mongo, db = HapPyMongo(config)
 ```
 
-## Python from dict
+### Python from dict
 
 ```python
 from happymongo import HapPyMongo
