@@ -1,5 +1,7 @@
 # HapPyMongo
 
+PyMongo wrapper for easy configuration within Flask or a standalone application
+
 ## Usage
 
 ### config.py as referenced below
