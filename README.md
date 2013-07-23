@@ -1,6 +1,6 @@
 # HapPyMongo
 
-PyMongo wrapper for easy configuration within Flask or a standalone application
+Python module for making it easy and consistent to connect to MongoDB via PyMongo either in Flask or in a non-flask application
 
 ## Usage
 
