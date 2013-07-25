@@ -11,6 +11,7 @@ setuptools.setup(
     author='Matt Martz',
     author_email='matt@sivel.net',
     url='https://github.com/sivel/happymongo',
+    license='Apache License, Version 2.0',
     packages=setuptools.find_packages(exclude=['tests', 'tests.*']),
     install_requires=['pymongo']
 )
