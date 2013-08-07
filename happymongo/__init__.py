@@ -72,10 +72,12 @@ class HapPyMongo(object):
         """
         config = {}
         app_name = get_app_name()
+        is_flask = False
         # If the object is a flask.app.Flask instance
         if flask_app and isinstance(app_or_object_or_dict, flask_app.Flask):
             config.update(app_or_object_or_dict.config)
             app_name = app_or_object_or_dict.name
+            is_flask = True
         # If the object is a dict
         elif isinstance(app_or_object_or_dict, dict):
             config.update(app_or_object_or_dict)
@@ -147,6 +149,11 @@ class HapPyMongo(object):
         # Auth with the DB if username and password were provided
         if any(auth):
             db.authenticate(username, password)
+
+        if is_flask:
+            if not hasattr(app_or_object_or_dict, 'extensions'):
+                app_or_object_or_dict.extensions = {}
+            app_or_object_or_dict.extensions['happymongo'] = (mongo, db)
 
         # Return the tuple
         return mongo, db
