@@ -4,7 +4,7 @@ import setuptools
 
 setuptools.setup(
     name='happymongo',
-    version='0.1',
+    version='0.1.1',
     description=('Python module for making it easy and consistent to '
                  'connect to MongoDB via PyMongo either in Flask or in'
                  ' a non-flask application'),
