@@ -1,14 +1,14 @@
-` <#happymongo>`_HapPyMongo
-===========================
+HapPyMongo
+==========
 
 Python module for making it easy and consistent to connect to MongoDB
 via PyMongo either in Flask or in a non-flask application
 
-` <#usage>`_Usage
------------------
+Usage
+-----
 
-` <#configpy-as-referenced-below>`_config.py as referenced below
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+config.py as referenced below
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
@@ -17,8 +17,8 @@ via PyMongo either in Flask or in a non-flask application
     MONGO_USERNAME = 'user'
     MONGO_PASSWORD = 'password'
 
-` <#flask>`_Flask
-~~~~~~~~~~~~~~~~~
+Flask
+~~~~~
 
 ::
 
@@ -32,8 +32,8 @@ via PyMongo either in Flask or in a non-flask application
     app.config.from_object(config)
     mongo, db = HapPyMongo(app)
 
-` <#python-from-import>`_Python from import
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Python from import
+~~~~~~~~~~~~~~~~~~
 
 ::
 
@@ -43,8 +43,8 @@ via PyMongo either in Flask or in a non-flask application
     import config
     mongo, db = HapPyMongo(config)
 
-` <#python-from-dict>`_Python from dict
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Python from dict
+~~~~~~~~~~~~~~~~
 
 ::
 
@@ -56,8 +56,8 @@ via PyMongo either in Flask or in a non-flask application
 
     mongo, db = HapPyMongo(config)
 
-` <#config-directives>`_Config directives
------------------------------------------
+Config directives
+-----------------
 
 +-------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Directive         | Description                                                                                                                                                                       |
