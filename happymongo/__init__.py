@@ -19,15 +19,23 @@ via PyMongo either in Flask or in a non-flask application
 
 """
 
-import pymongo
 import os
 import sys
+import pymongo
+import pymongo.errors
 
 # Attempt to import flask but continue on without it
 try:
     import flask.app as flask_app
 except ImportError:
     flask_app = None
+
+
+__version__ = '1.0.0'
+
+
+class HapPyMongoNoHost(pymongo.errors.ConfigurationError):
+    """Raised when MONGO_HOST is configured incorrectly"""
 
 
 def get_app_name():
@@ -88,6 +96,7 @@ class HapPyMongo(object):
                     config[name] = getattr(app_or_object_or_dict, name)
 
         kwargs = config.get('MONGO_KWARGS', {})
+        args = []
 
         # Are we operating with a full MONGO_URI or not?
         if 'MONGO_URI' in config:
@@ -104,7 +113,8 @@ class HapPyMongo(object):
             # we will use the URI for connecting instead of HOST/PORT
             config.pop('MONGO_HOST', None)
             config.pop('MONGO_PORT', None)
-            host = config.get('MONGO_URI')
+            #host = config.get('MONGO_URI')
+            args.append(config.get('MONGO_URI'))
         # Not operating with a full MONGO_URI
         else:
             config.setdefault('MONGO_HOST', 'localhost')
@@ -136,13 +146,25 @@ class HapPyMongo(object):
 
         # Instantiate the correct pymongo client for replica sets or not
         if kwargs.get('replicaSet'):
+            if (isinstance(config.get('MONGO_HOST'), (list, tuple)) and
+                    not args):
+                del kwargs['host']
+                hosts = []
+                for host in config.get('MONGO_HOST'):
+                    if ':' not in host:
+                        host = '%s:%s' % (host, config.get('MONGO_PORT'))
+                    hosts.append(host)
+                args.append('%s' % ','.join(hosts))
             cls = pymongo.MongoReplicaSetClient
         else:
+            if (isinstance(config.get('MONGO_HOST'), (list, tuple)) and
+                    not args):
+                raise HapPyMongoNoHost
             cls = pymongo.MongoClient
 
         # Instantiate the class using the kwargs obtained from and set
         # in MONGO_KWARGS
-        mongo = cls(**kwargs)
+        mongo = cls(*args, **kwargs)
 
         db = mongo[database]
 
