@@ -98,9 +98,7 @@ class HapPyMongo(object):
         if 'MONGO_URI' in config:
             # bootstrap configuration from the URL
             parsed = pymongo.uri_parser.parse_uri(config.get('MONGO_URI'))
-            if 'database' not in parsed:
-                raise ValueError('MongoDB URI does not contain database name')
-            config['MONGO_DATABASE'] = parsed['database']
+            config['MONGO_DATABASE'] = parsed.get('database', app_name)
             config['MONGO_USERNAME'] = parsed['username']
             config['MONGO_PASSWORD'] = parsed['password']
             for option, value in parsed['options'].iteritems():
@@ -109,7 +107,6 @@ class HapPyMongo(object):
             # we will use the URI for connecting instead of HOST/PORT
             config.pop('MONGO_HOST', None)
             config.pop('MONGO_PORT', None)
-            #host = config.get('MONGO_URI')
             args.append(config.get('MONGO_URI'))
         # Not operating with a full MONGO_URI
         else:
@@ -127,8 +124,9 @@ class HapPyMongo(object):
                 raise errors.HapPyMongoInvalidPort('MONGO_PORT must be an '
                                                    'integer')
 
-            host = '%s:%s' % (config.get('MONGO_HOST'),
-                              config.get('MONGO_PORT'))
+            if not isinstance(config.get('MONGO_HOST'), (list, tuple)):
+                kwargs['host'] = '%s:%s' % (config.get('MONGO_HOST'),
+                                            config.get('MONGO_PORT'))
 
         username = config.get('MONGO_USERNAME')
         password = config.get('MONGO_PASSWORD')
@@ -140,13 +138,10 @@ class HapPyMongo(object):
 
         database = config.get('MONGO_DATABASE')
 
-        kwargs['host'] = host
-
         # Instantiate the correct pymongo client for replica sets or not
         if kwargs.get('replicaSet'):
             if (isinstance(config.get('MONGO_HOST'), (list, tuple)) and
                     not args):
-                del kwargs['host']
                 hosts = []
                 for host in config.get('MONGO_HOST'):
                     if ':' not in host:
