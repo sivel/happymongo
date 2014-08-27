@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2013 Matt Martz
+# Copyright 2013-2014 Matt Martz
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -22,7 +22,7 @@ via PyMongo either in Flask or in a non-flask application
 import os
 import sys
 import pymongo
-import pymongo.errors
+from happymongo import errors
 
 # Attempt to import flask but continue on without it
 try:
@@ -32,10 +32,6 @@ except ImportError:
 
 
 __version__ = '1.0.0'
-
-
-class HapPyMongoNoHost(pymongo.errors.ConfigurationError):
-    """Raised when MONGO_HOST is configured incorrectly"""
 
 
 def get_app_name():
@@ -126,9 +122,10 @@ class HapPyMongo(object):
             config.setdefault('MONGO_PASSWORD', None)
 
             try:
-                port = int(config.get('MONGO_PORT'))
+                int(config.get('MONGO_PORT'))
             except ValueError:
-                raise TypeError('MONGO_PORT must be an integer')
+                raise errors.HapPyMongoInvalidPort('MONGO_PORT must be an '
+                                                   'integer')
 
             host = '%s:%s' % (config.get('MONGO_HOST'),
                               config.get('MONGO_PORT'))
@@ -138,7 +135,8 @@ class HapPyMongo(object):
         auth = (username, password)
 
         if any(auth) and not all(auth):
-            raise Exception('Must set both USERNAME and PASSWORD or neither')
+            raise errors.HapPyMongoMissingAuth('Must set both USERNAME and '
+                                               'PASSWORD or neither')
 
         database = config.get('MONGO_DATABASE')
 
@@ -159,7 +157,7 @@ class HapPyMongo(object):
         else:
             if (isinstance(config.get('MONGO_HOST'), (list, tuple)) and
                     not args):
-                raise HapPyMongoNoHost
+                raise errors.HapPyMongoNoHost('No host was provided')
             cls = pymongo.MongoClient
 
         # Instantiate the class using the kwargs obtained from and set
@@ -179,5 +177,3 @@ class HapPyMongo(object):
 
         # Return the tuple
         return mongo, db
-
-# vim:set ts=4 sw=4 expandtab:
