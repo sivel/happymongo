@@ -47,5 +47,5 @@ setup(
     url='https://github.com/sivel/happymongo',
     license='Apache License, Version 2.0',
     packages=find_packages(exclude=['tests', 'tests.*']),
-    install_requires=['pymongo']
+    install_requires=['pymongo>=3.0']
 )

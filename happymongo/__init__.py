@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2013-2014 Matt Martz
+# Copyright 2013-2015 Matt Martz
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -46,26 +46,16 @@ def get_app_name():
 
 
 class HapPyMongo(object):
-    """HapPyMongo class that returns a tuple of either:
+    """HapPyMongo class that returns a tuple of:
 
     (pymongo.mongo_client.MongoClient, pymongo.database.Database)
-
-    or
-
-    (pymongo.mongo_replica_set_client.MongoReplicaSetClient,
-     pymongo.database.Database)
 
     """
 
     def __new__(cls, app_or_object_or_dict):
-        """Creates and returns a tuple of either:
+        """Creates and returns a tuple of:
 
         (pymongo.mongo_client.MongoClient, pymongo.database.Database)
-
-        or
-
-        (pymongo.mongo_replica_set_client.MongoReplicaSetClient,
-         pymongo.database.Database)
 
         utilizing either a passed in Flask 'app' instance, an imported module
         object, or a dictionary of config values.
@@ -92,24 +82,15 @@ class HapPyMongo(object):
                     config[name] = getattr(app_or_object_or_dict, name)
 
         kwargs = config.get('MONGO_KWARGS', {})
-        args = []
 
         # Are we operating with a full MONGO_URI or not?
         if 'MONGO_URI' in config:
-            # bootstrap configuration from the URL
+            kwargs['host'] = config.get('MONGO_URI')
             parsed = pymongo.uri_parser.parse_uri(config.get('MONGO_URI'))
-            config['MONGO_DATABASE'] = parsed.get('database', app_name)
-            config['MONGO_USERNAME'] = parsed['username']
-            config['MONGO_PASSWORD'] = parsed['password']
-            for option, value in parsed['options'].iteritems():
-                kwargs.setdefault(option, value)
-
-            # we will use the URI for connecting instead of HOST/PORT
-            config.pop('MONGO_HOST', None)
-            config.pop('MONGO_PORT', None)
-            args.append(config.get('MONGO_URI'))
+            auth_callback = lambda db: True
         # Not operating with a full MONGO_URI
         else:
+            parsed = {}
             config.setdefault('MONGO_HOST', 'localhost')
             config.setdefault('MONGO_PORT', 27017)
             config.setdefault('MONGO_DATABASE', app_name)
@@ -125,45 +106,28 @@ class HapPyMongo(object):
                                                    'integer')
 
             if not isinstance(config.get('MONGO_HOST'), (list, tuple)):
-                kwargs['host'] = '%s:%s' % (config.get('MONGO_HOST'),
-                                            config.get('MONGO_PORT'))
+                config['MONGO_HOST'] = [config['MONGO_HOST']]
 
-        username = config.get('MONGO_USERNAME')
-        password = config.get('MONGO_PASSWORD')
-        auth = (username, password)
+            kwargs['host'] = []
+            for host in config.get('MONGO_HOST'):
+                if ':' not in host:
+                    host = '%s:%s' % (host, config.get('MONGO_PORT'))
+                kwargs['host'].append(host)
 
-        if any(auth) and not all(auth):
-            raise errors.HapPyMongoMissingAuth('Must set both USERNAME and '
-                                               'PASSWORD or neither')
+            username = config.get('MONGO_USERNAME')
+            password = config.get('MONGO_PASSWORD')
+            auth = (username, password)
 
-        database = config.get('MONGO_DATABASE')
+            if any(auth) and not all(auth):
+                raise errors.HapPyMongoMissingAuth('Must set both USERNAME '
+                                                   'and PASSWORD or neither')
+            auth_callback = lambda db: getattr(db, 'authenticate')(*auth)
 
-        # Instantiate the correct pymongo client for replica sets or not
-        if kwargs.get('replicaSet'):
-            if (isinstance(config.get('MONGO_HOST'), (list, tuple)) and
-                    not args):
-                hosts = []
-                for host in config.get('MONGO_HOST'):
-                    if ':' not in host:
-                        host = '%s:%s' % (host, config.get('MONGO_PORT'))
-                    hosts.append(host)
-                args.append('%s' % ','.join(hosts))
-            cls = pymongo.MongoReplicaSetClient
-        else:
-            if (isinstance(config.get('MONGO_HOST'), (list, tuple)) and
-                    not args):
-                raise errors.HapPyMongoNoHost('No host was provided')
-            cls = pymongo.MongoClient
+        database = parsed.get('database') or config.get('MONGO_DATABASE')
 
-        # Instantiate the class using the kwargs obtained from and set
-        # in MONGO_KWARGS
-        mongo = cls(*args, **kwargs)
-
+        mongo = pymongo.MongoClient(**kwargs)
         db = mongo[database]
-
-        # Auth with the DB if username and password were provided
-        if any(auth):
-            db.authenticate(username, password)
+        auth_callback(db)
 
         if is_flask:
             if not hasattr(app_or_object_or_dict, 'extensions'):
